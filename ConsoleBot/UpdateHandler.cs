@@ -139,19 +139,6 @@ namespace ConsoleBot
                 botClient.SendMessage(update.Message.Chat, $"Мы уже знакомы, {user.TelegramUserName}!");
             }
         }
-        //мой старый старт без запроса MaxTaskCount и MaxLengthCount
-        //private void HandleStartCommand(ITelegramBotClient botClient, ToDoUser? user, long telegramUserId, string telegramUserName, Update update)
-        //{
-        //    if (user == null)
-        //    {
-        //        user = _userService.RegisterUser(telegramUserId, telegramUserName);
-        //        botClient.SendMessage(update.Message.Chat, $"Добро пожаловать, Вы зарегистрированы как {user.TelegramUserName}!");
-        //    }
-        //    else
-        //    {
-        //        botClient.SendMessage(update.Message.Chat, $"Мы уже знакомы {user.TelegramUserName}!");
-        //    }
-        //}
 
         //кейс обработки команд зарегистрированных пользователей
         private void HandleRegisteredUserCommands(ITelegramBotClient botClient, string command, ToDoUser? user, Update update)
@@ -252,19 +239,6 @@ namespace ConsoleBot
                 botClient.SendMessage(update.Message.Chat, "Некорректный номер задачи.");
             }
         }
-        //мой старый RemoveTask для удаления задачи по ее ID
-        //private void RemoveTask(ITelegramBotClient botClient, Update update)
-        //{
-        //    if (Guid.TryParse(update.Message.Text.Substring(12), out var taskIdToRemove))
-        //    {
-        //        _toDoService.Delete(taskIdToRemove);
-        //        botClient.SendMessage(update.Message.Chat, $"Задача с ID '{taskIdToRemove}' удалена.");
-        //    }
-        //    else
-        //    {
-        //        botClient.SendMessage(update.Message.Chat, "Некорректный ID задачи.");
-        //    }
-        //}
 
         //показываем активные задачи
         private void ShowTasks(ITelegramBotClient botClient, Guid userId, Update update)
