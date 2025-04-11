@@ -1,0 +1,19 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleBot
+
+{
+    public class ToDoUser
+    {
+        public Guid UserId { get; set; }
+        public long TelegramUserId { get; set; }
+        public string TelegramUserName { get; set; }
+        public DateTime RegisteredAt { get; set; }
+        public bool WaitingForMaxTaskCount { get; set; } = false;
+        public bool WaitingForMaxLengthCount { get; set; } = false;
+    }
+}
