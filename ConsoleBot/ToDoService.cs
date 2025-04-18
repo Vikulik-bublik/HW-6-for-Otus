@@ -12,8 +12,6 @@ namespace ConsoleBot
     public class ToDoService : IToDoService
     {
         private readonly List<ToDoItem> _items = new();
-        public static int MaxTaskCount;
-        public static int MaxLengthCount;
 
         public IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId)
         {
@@ -22,11 +20,11 @@ namespace ConsoleBot
 
         public ToDoItem Add(ToDoUser user, string name)
         { 
-            ValidateString(name);
-            if (name.Length > MaxLengthCount)
-                throw new TaskLengthLimitException(MaxLengthCount);
-            if (_items.Count >= MaxTaskCount)
-                throw new TaskCountLimitException(MaxTaskCount);
+            Helper.ValidateString(name);
+            if (name.Length > Helper.MaxLengthCount)
+                throw new TaskLengthLimitException(Helper.MaxLengthCount);
+            if (_items.Count >= Helper.MaxTaskCount)
+                throw new TaskCountLimitException(Helper.MaxTaskCount);
             if (_items.Any(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && t.User.UserId == user.UserId))
                 throw new DuplicateTaskException(name);
             
@@ -61,58 +59,9 @@ namespace ConsoleBot
             }
         }
 
-        public List<ToDoItem> GetAllTasks()
+        public IReadOnlyList<ToDoItem> GetAllTasks()
         {
-            return _items;
-        }
-
-        public static void SetMaxTaskCount(ITelegramBotClient botClient, string input, Update update)
-        {
-            try
-            {
-                MaxTaskCount = ParseAndValidateInt(input, min: 1, max: 100);
-                botClient.SendMessage(update.Message.Chat, $"Максимальное число задач установлено: {MaxTaskCount}");
-            }
-            catch (ArgumentException ex)
-            {
-                throw ex;
-            }
-        }
-
-        public static void SetMaxLengthCount(ITelegramBotClient botClient, string input, Update update)
-        {
-            try
-            {
-                MaxLengthCount = ParseAndValidateInt(input, min: 1, max: 100);
-                botClient.SendMessage(update.Message.Chat, $"Максимальная длина задач установлена на количество символов: {MaxLengthCount}.");
-            }
-            catch (ArgumentException ex)
-            {
-                throw ex;
-            }
-        }
-
-        public static void ValidateString(string? str)
-        {
-            if (string.IsNullOrWhiteSpace(str))
-            {
-                throw new ArgumentException("Ввод не должен быть пустым или содержать только пробелы.");
-            }
-        }
-
-        public static int ParseAndValidateInt(string? str, int min, int max)
-        {
-            ValidateString(str);
-
-            if (!int.TryParse(str, out int result))
-            {
-                throw new ArgumentException("Ввод должен быть целым числом.");
-            }
-            if (result < min || result > max)
-            {
-                throw new ArgumentException($"Значение должно быть в диапазоне от {min} до {max}.");
-            }
-            return result;
+            return _items.AsReadOnly();
         }
     }
 }

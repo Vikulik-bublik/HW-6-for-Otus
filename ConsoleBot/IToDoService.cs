@@ -12,6 +12,6 @@ namespace ConsoleBot
         ToDoItem Add(ToDoUser user, string name);
         void MarkCompleted(Guid id);
         void Delete(Guid id);
-        List<ToDoItem> GetAllTasks();
+        IReadOnlyList<ToDoItem> GetAllTasks();
     }
 }

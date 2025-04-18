@@ -68,7 +68,7 @@ namespace ConsoleBot
             var input = update.Message.Text.Trim(); 
             try
             {
-                ToDoService.SetMaxTaskCount(botClient, input, update);
+                Helper.SetMaxTaskCount(botClient, input, update);
                 user.WaitingForMaxTaskCount = false;
                 botClient.SendMessage(update.Message.Chat, "Теперь введите максимальную длину задачи (от 1 до 100):");
                 user.WaitingForMaxLengthCount = true;
@@ -84,7 +84,7 @@ namespace ConsoleBot
             var input = update.Message.Text.Trim();
             try
             {
-                ToDoService.SetMaxLengthCount(botClient, input, update);
+                Helper.SetMaxLengthCount(botClient, input, update);
                 user.WaitingForMaxLengthCount = false;
                 botClient.SendMessage(update.Message.Chat, "Настройки успешно сохранены!");
             }
@@ -106,10 +106,10 @@ namespace ConsoleBot
             else if (user.WaitingForMaxTaskCount)
             {
                 var input = update.Message.Text;
-                ToDoService.ValidateString(input);
+                Helper.ValidateString(input);
                 try
                 {
-                    ToDoService.SetMaxTaskCount(botClient, input, update);
+                    Helper.SetMaxTaskCount(botClient, input, update);
                     user.WaitingForMaxTaskCount = false;
                     botClient.SendMessage(update.Message.Chat, "Теперь введите максимальную длину задачи (от 1 до 100):");
                     user.WaitingForMaxLengthCount = true;
@@ -122,10 +122,10 @@ namespace ConsoleBot
             else if (user.WaitingForMaxLengthCount)
             {
                 var input = update.Message.Text;
-                ToDoService.ValidateString(input);
+                Helper.ValidateString(input);
                 try
                 {
-                    ToDoService.SetMaxLengthCount(botClient, input, update);
+                    Helper.SetMaxLengthCount(botClient, input, update);
                     user.WaitingForMaxLengthCount = false;
                     botClient.SendMessage(update.Message.Chat, "Настройки успешно сохранены!");
                 }
@@ -146,7 +146,7 @@ namespace ConsoleBot
             switch (command)
             {
                 case "/info":
-                    botClient.SendMessage(update.Message.Chat, "Вот информация о боте. \nДата создания: 23.02.2025. Версия: 2.0.0 от 08.04.2025.");
+                    botClient.SendMessage(update.Message.Chat, "Вот информация о боте. \nДата создания: 23.02.2025. Версия: 2.0.1 от 18.04.2025.");
                     break;
                 case "/help":
                     Help(botClient, update);
@@ -178,7 +178,7 @@ namespace ConsoleBot
             if (command == "/info" || command == "/help")
             {
                 if (command == "/info")
-                    botClient.SendMessage(update.Message.Chat, "Вот информация о боте. \nДата создания: 23.02.2025. Версия: 2.0.0 от 08.04.2025.");
+                    botClient.SendMessage(update.Message.Chat, "Вот информация о боте. \nДата создания: 23.02.2025. Версия: 2.0.1 от 18.04.2025.");
 
                 if (command == "/help")
                     Help(botClient, update);
