@@ -5,9 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Otus.ToDoList.ConsoleBot.Types;
 using Otus.ToDoList.ConsoleBot;
+using ConsoleBot.Core.Entities;
+using ConsoleBot.Core.Exceptions;
 
-
-namespace ConsoleBot
+namespace ConsoleBot.Core.Services
 {
     public class ToDoService : IToDoService
     {
