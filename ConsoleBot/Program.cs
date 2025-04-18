@@ -1,4 +1,6 @@
-﻿using Otus.ToDoList.ConsoleBot;
+﻿using ConsoleBot.Core.Services;
+using ConsoleBot.TelegramBot;
+using Otus.ToDoList.ConsoleBot;
 
 namespace ConsoleBot
 {

@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using ConsoleBot.Core.Entities;
 
-namespace ConsoleBot
+namespace ConsoleBot.Core.Services
 {
     public class UserService : IUserService
     {

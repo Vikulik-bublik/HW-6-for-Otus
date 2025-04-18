@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 using Otus.ToDoList.ConsoleBot.Types;
 using Otus.ToDoList.ConsoleBot;
 using System.Xml.Linq;
+using ConsoleBot.Core.Entities;
+using ConsoleBot.Core.Exceptions;
+using ConsoleBot.Core.Services;
 
-namespace ConsoleBot
+namespace ConsoleBot.TelegramBot
 {
     public class UpdateHandler : IUpdateHandler
     {
