@@ -11,9 +11,4 @@
     <ProjectReference Include="..\HW-5 DLL\Otus.ToDoList.ConsoleBot\Otus.ToDoList.ConsoleBot.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Core\DataAccess\" />
-    <Folder Include="Infrastructure\DataAccess\" />
-  </ItemGroup>
-
 </Project>

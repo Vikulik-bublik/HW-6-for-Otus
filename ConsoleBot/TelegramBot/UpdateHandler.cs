@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Exceptions;
 using ConsoleBot.Core.Services;
+using System.Numerics;
 
 namespace ConsoleBot.TelegramBot
 {
@@ -16,11 +17,13 @@ namespace ConsoleBot.TelegramBot
     {
         private readonly IUserService _userService;
         private readonly IToDoService _toDoService;
+        private readonly IToDoReportService _reportService;
 
-        public UpdateHandler(IUserService userService, IToDoService toDoService)
+        public UpdateHandler(IUserService userService, IToDoService toDoService, IToDoReportService reportService)
         {
             _userService = userService;
             _toDoService = toDoService;
+            _reportService = reportService;
         }
 
         public void HandleUpdateAsync(ITelegramBotClient botClient, Update update)
@@ -68,7 +71,7 @@ namespace ConsoleBot.TelegramBot
         //метод для задания максимального количества задач при условии состояния
         private void HandleMaxTaskCountInput(ITelegramBotClient botClient, ToDoUser user, Update update)
         {
-            var input = update.Message.Text.Trim(); 
+            var input = update.Message.Text.Trim();
             try
             {
                 Helper.SetMaxTaskCount(botClient, input, update);
@@ -149,7 +152,7 @@ namespace ConsoleBot.TelegramBot
             switch (command)
             {
                 case "/info":
-                    botClient.SendMessage(update.Message.Chat, "Вот информация о боте. \nДата создания: 23.02.2025. Версия: 2.0.1 от 18.04.2025.");
+                    botClient.SendMessage(update.Message.Chat, "Вот информация о боте. \nДата создания: 23.02.2025. Версия: 2.1.0 от 21.04.2025.");
                     break;
                 case "/help":
                     Help(botClient, update);
@@ -158,7 +161,7 @@ namespace ConsoleBot.TelegramBot
                     AddTask(botClient, user, update);
                     break;
                 case "/removetask":
-                    RemoveTask(botClient, update);
+                    RemoveTask(botClient, user.UserId, update);
                     break;
                 case "/showtasks":
                     ShowTasks(botClient, user.UserId, update);
@@ -168,6 +171,12 @@ namespace ConsoleBot.TelegramBot
                     break;
                 case "/showalltasks":
                     ShowAllTasks(botClient, update);
+                    break;
+                case "/report":
+                    Report(botClient, user, update);
+                    break;
+                case "/find":
+                    Find(botClient, user, update);
                     break;
                 default:
                     botClient.SendMessage(update.Message.Chat, "Введена неверная команда. Пожалуйста, попробуйте снова.");
@@ -181,7 +190,7 @@ namespace ConsoleBot.TelegramBot
             if (command == "/info" || command == "/help")
             {
                 if (command == "/info")
-                    botClient.SendMessage(update.Message.Chat, "Вот информация о боте. \nДата создания: 23.02.2025. Версия: 2.0.1 от 18.04.2025.");
+                    botClient.SendMessage(update.Message.Chat, "Вот информация о боте. \nДата создания: 23.02.2025. Версия: 2.1.0 от 21.04.2025.");
 
                 if (command == "/help")
                     Help(botClient, update);
@@ -200,7 +209,10 @@ namespace ConsoleBot.TelegramBot
                               "\n/removetask <номер задачи> - удаление задачи из списка по ее порядковому номеру;" +
                               "\n/completetask <ID задачи> - установить задачу как выполненную по ее ID;" +
                               "\n/showtasks - показать все активные задачи;" +
-                              "\n/showalltasks - показать весь список задач.";
+                              "\n/showalltasks - показать весь список задач;" +
+                              "\n/report - вывод статистики по задачам;" +
+                              "\n/find <символы с которых начинается задача> - поиск задачи по нескольким сиволам ее начала.";
+
             botClient.SendMessage(update.Message.Chat, helpMessage);
         }
 
@@ -220,12 +232,12 @@ namespace ConsoleBot.TelegramBot
         }
 
         //удаляем задачу по ее порядковому номеру
-        private void RemoveTask(ITelegramBotClient botClient, Update update)
+        private void RemoveTask(ITelegramBotClient botClient, Guid userId, Update update)
         {
             var input = update.Message.Text.Substring(12).Trim();
             if (int.TryParse(input, out int taskIndex))
             {
-                var tasks = _toDoService.GetAllTasks();
+                var tasks = _toDoService.GetAllTasks(userId);
                 if (taskIndex >= 1 && taskIndex <= tasks.Count)
                 {
                     var taskToRemove = tasks[taskIndex - 1];
@@ -256,26 +268,82 @@ namespace ConsoleBot.TelegramBot
         //меняем состаяние задачи из активного в неактивное по ID
         private void CompleteTask(ITelegramBotClient botClient, Update update)
         {
-            if (Guid.TryParse(update.Message.Text.Substring(14), out var taskIdToComplete))
+            var telegramUserId = update.Message.From.Id;
+            var user = _userService.GetUser(telegramUserId);
+            if (user == null)
             {
-                _toDoService.MarkCompleted(taskIdToComplete);
-                botClient.SendMessage(update.Message.Chat, $"Задача с ID '{taskIdToComplete}' помечена как выполненная.");
+                botClient.SendMessage(update.Message.Chat, "Пользователь не найден.");
+                return;
+            }
+            if (Guid.TryParse(update.Message.Text.Substring(14).Trim(), out var taskId))
+            {
+                // Получаем задачу и проверяем принадлежность пользователю
+                var task = _toDoService.GetAllTasks(user.UserId)
+                    .FirstOrDefault(t => t.Id == taskId);
+
+                if (task == null)
+                {
+                    botClient.SendMessage(update.Message.Chat, "Задача не найдена.");
+                    return;
+                }
+
+                _toDoService.MarkCompleted(taskId, user.UserId);
+                botClient.SendMessage(update.Message.Chat, $"Задача '{task.Name}' помечена как выполненная.");
             }
             else
             {
-                botClient.SendMessage(update.Message.Chat, "Некорректный ID задачи.");
+                botClient.SendMessage(update.Message.Chat, "Некорректный формат ID задачи.");
             }
         }
 
         //показываем все активные и неактивные задачи
         private void ShowAllTasks(ITelegramBotClient botClient, Update update)
         {
-            var allTasks = _toDoService.GetAllTasks();
+            var telegramUserId = update.Message.From.Id;
+            var user = _userService.GetUser(telegramUserId);
+
+            if (user == null)
+            {
+                botClient.SendMessage(update.Message.Chat, "Пользователь не найден.");
+                return;
+            }
+
+            var allTasks = _toDoService.GetAllTasks(user.UserId);
             var allTaskList = string.Join(Environment.NewLine,
                 allTasks.Select(t => $"\nСтатус задачи: ({t.State}) Задача: {t.Name} - Время создания задачи: {t.CreatedAt} - ID задачи: {t.Id}"));
+
             botClient.SendMessage(update.Message.Chat, string.IsNullOrEmpty(allTaskList) ? "Нет задач." : allTaskList);
         }
 
+        //вывод статистики по задачам
+        private void Report(ITelegramBotClient botClient, ToDoUser user, Update update)
+        {
+            var (total, completed, active, generatedAt) = _reportService.GetUserStats(user.UserId);
+            var report = $"Статистика по задачам на {generatedAt}" +
+                $"\nВсего: {total}; Завершенных: {completed}; Активных: {active};";
+
+            botClient.SendMessage(update.Message.Chat, report);
+        }
+
+        //поиск задачи по префиксу
+        private void Find(ITelegramBotClient botClient, ToDoUser user, Update update)
+        {
+            var namePrefix = update.Message.Text.Substring(6).Trim();
+            if (string.IsNullOrWhiteSpace(namePrefix))
+            {
+                botClient.SendMessage(update.Message.Chat, "Для поиска задачи введите ключевое слово после команды /find");
+                return;
+            }
+
+            var tasks = _toDoService.Find(user, namePrefix);
+            var taskList = string.Join(Environment.NewLine,
+                tasks.Select(t => $"\nЗадача: {t.Name} - Время создания задачи: {t.CreatedAt} - ID задачи: {t.Id}"));
+
+            botClient.SendMessage(update.Message.Chat,
+                string.IsNullOrEmpty(taskList)
+                    ? $"Не найдено задач, начинающихся с '{namePrefix}'"
+                    : $"По вашему запросу найдены следующие задачи:\n{taskList}");
+        }
         //кейсы исключений
         private void HandleException(Exception ex, ITelegramBotClient botClient, Update update)
         {
