@@ -4,12 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using ConsoleBot.Core.DataAccess;
+using ConsoleBot.Core.Entities;
+using Otus.ToDoList.ConsoleBot.Types;
 
-namespace ConsoleBot
+namespace ConsoleBot.Core.Services
 {
     public class UserService : IUserService
     {
-        private readonly Dictionary<long, ToDoUser> _users = new();
+        private readonly IUserRepository _userRepository;
+
+        public UserService(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
 
         public ToDoUser RegisterUser(long telegramUserId, string telegramUserName)
         {
@@ -20,15 +28,13 @@ namespace ConsoleBot
                 TelegramUserName = telegramUserName,
                 RegisteredAt = DateTime.UtcNow
             };
-            _users[telegramUserId] = user;
+            _userRepository.Add(user);
             return user;
         }
 
         public ToDoUser? GetUser(long telegramUserId)
         {
-            _users.TryGetValue(telegramUserId, out var user);
-            return user;
+            return _userRepository.GetUserByTelegramUserId(telegramUserId);
         }
     }
-
 }

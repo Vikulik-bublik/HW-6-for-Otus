@@ -1,4 +1,8 @@
-﻿using Otus.ToDoList.ConsoleBot;
+﻿using ConsoleBot.Core.DataAccess;
+using ConsoleBot.Core.Services;
+using ConsoleBot.Infrastructure.DataAccess;
+using ConsoleBot.TelegramBot;
+using Otus.ToDoList.ConsoleBot;
 
 namespace ConsoleBot
 {
@@ -6,9 +10,12 @@ namespace ConsoleBot
     {
         public static void Main(string[] args)
         {
-            var userService = new UserService();
-            var toDoService = new ToDoService();
-            var handler = new UpdateHandler(userService, toDoService);
+            var userRepository = new InMemoryUserRepository();
+            var toDoRepository = new InMemoryToDoRepository();
+            var reportService = new ToDoReportService(toDoRepository);
+            var userService = new UserService(userRepository);
+            var toDoService = new ToDoService(toDoRepository);
+            var handler = new UpdateHandler(userService, toDoService, reportService);
             var botClient = new ConsoleBotClient();
 
             try
