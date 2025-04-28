@@ -3,6 +3,8 @@ using ConsoleBot.Core.Services;
 using ConsoleBot.Infrastructure.DataAccess;
 using ConsoleBot.TelegramBot;
 using Otus.ToDoList.ConsoleBot;
+using Otus.ToDoList.ConsoleBot.Types;
+
 
 namespace ConsoleBot
 {
@@ -17,14 +19,28 @@ namespace ConsoleBot
             var toDoService = new ToDoService(toDoRepository);
             var handler = new UpdateHandler(userService, toDoService, reportService);
             var botClient = new ConsoleBotClient();
+            using var cts = new CancellationTokenSource();
+            //подписываемся
+            handler.OnHandleUpdateStarted += message =>
+                Console.WriteLine($"Началась обработка сообщения '{message}'");
+            handler.OnHandleUpdateCompleted += message =>
+                Console.WriteLine($"Закончилась обработка сообщения '{message}'");
 
             try
             {
-                botClient.StartReceiving(handler);
+                botClient.StartReceiving(handler, cts.Token);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Произошла ошибка: {ex.Message}");
+            }
+            finally
+            {
+                //отписываемся
+                handler.OnHandleUpdateStarted -= message =>
+                    Console.WriteLine($"Началась обработка сообщения '{message}'");
+                handler.OnHandleUpdateCompleted -= message =>
+                    Console.WriteLine($"Закончилась обработка сообщения '{message}'");
             }
         }
     }

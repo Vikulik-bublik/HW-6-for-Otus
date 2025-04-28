@@ -12,28 +12,32 @@ namespace ConsoleBot.Infrastructure.DataAccess
     {
         private readonly List<ToDoItem> _items = new();
 
-        public IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId)
+        public Task<IReadOnlyList<ToDoItem>> GetAllByUserId(Guid userId, CancellationToken ct)
         {
-            return _items.Where(item => item.User.UserId == userId).ToList();
+            IReadOnlyList<ToDoItem> result = _items.Where(item => item.User.UserId == userId).ToList();
+            return Task.FromResult(result);
         }
 
-        public IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId)
+        public Task<IReadOnlyList<ToDoItem>> GetActiveByUserId(Guid userId, CancellationToken ct)
         {
-            return _items.Where(item => item.User.UserId == userId && item.State == ToDoItemState.Active).ToList();
+            IReadOnlyList<ToDoItem> result = _items.Where(item => item.User.UserId == userId && item.State == ToDoItemState.Active).ToList();
+            return Task.FromResult(result);
         }
-        public IReadOnlyList<ToDoItem> Find(Guid userId, Func<ToDoItem, bool> predicate)
+        public Task<IReadOnlyList<ToDoItem>> Find(Guid userId, Func<ToDoItem, bool> predicate, CancellationToken ct)
         {
-            return _items.Where(item => item.User.UserId == userId && predicate(item)).ToList();
+            IReadOnlyList<ToDoItem> result = _items.Where(item => item.User.UserId == userId && predicate(item)).ToList();
+            return Task.FromResult(result);
         }
-        public void Add(ToDoItem item)
+        public Task Add(ToDoItem item, CancellationToken ct)
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item));
 
             _items.Add(item);
+            return Task.CompletedTask;
         }
 
-        public void Update(ToDoItem item)
+        public Task Update(ToDoItem item, CancellationToken ct)
         {
             var existingItem = _items.FirstOrDefault(i => i.Id == item.Id);
             if (existingItem != null)
@@ -42,29 +46,33 @@ namespace ConsoleBot.Infrastructure.DataAccess
                 existingItem.State = item.State;
                 existingItem.StateChangedAt = item.StateChangedAt;
             }
+            return Task.CompletedTask;
         }
 
-        public void Delete(Guid id)
+        public Task Delete(Guid id, CancellationToken ct)
         {
             var item = _items.FirstOrDefault(i => i.Id == id);
             if (item != null)
             {
                 _items.Remove(item);
             }
+            return Task.CompletedTask;
         }
 
-        public bool ExistsByName(Guid userId, string name)
+        public Task<bool> ExistsByName(Guid userId, string name, CancellationToken ct)
         {
-            return _items.Any(item =>
+            bool result = _items.Any(item =>
                 item.User.UserId == userId &&
                 item.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return Task.FromResult(result);
         }
 
-        public int CountActive(Guid userId)
+        public Task<int> CountActive(Guid userId, CancellationToken ct)
         {
-            return _items.Count(item =>
+            int result = _items.Count(item =>
                 item.User.UserId == userId &&
                 item.State == ToDoItemState.Active);
+            return Task.FromResult(result);
         }
     }
 }

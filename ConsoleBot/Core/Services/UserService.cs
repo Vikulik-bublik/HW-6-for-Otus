@@ -19,7 +19,7 @@ namespace ConsoleBot.Core.Services
             _userRepository = userRepository;
         }
 
-        public ToDoUser RegisterUser(long telegramUserId, string telegramUserName)
+        public async Task<ToDoUser> RegisterUser(long telegramUserId, string telegramUserName, CancellationToken ct)
         {
             var user = new ToDoUser
             {
@@ -28,13 +28,13 @@ namespace ConsoleBot.Core.Services
                 TelegramUserName = telegramUserName,
                 RegisteredAt = DateTime.UtcNow
             };
-            _userRepository.Add(user);
+            await _userRepository.Add(user, ct);
             return user;
         }
 
-        public ToDoUser? GetUser(long telegramUserId)
+        public async Task<ToDoUser?> GetUser(long telegramUserId, CancellationToken ct)
         {
-            return _userRepository.GetUserByTelegramUserId(telegramUserId);
+            return await _userRepository.GetUserByTelegramUserId(telegramUserId, ct);
         }
     }
 }

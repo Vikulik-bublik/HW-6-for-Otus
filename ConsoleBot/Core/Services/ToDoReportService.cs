@@ -17,10 +17,15 @@ namespace ConsoleBot.Core.Services
             _toDoRepository = toDoRepository;
         }
 
-        public (int total, int completed, int active, DateTime generatedAt) GetUserStats(Guid userId)
+        public async Task<(int total, int completed, int active, DateTime generatedAt)> GetUserStats(Guid userId, CancellationToken ct)
         {
-            var tasks = _toDoRepository.GetAllByUserId(userId);
-            return (total: tasks.Count, completed: tasks.Count(t => t.State == ToDoItemState.Completed), active: tasks.Count(t => t.State == ToDoItemState.Active), generatedAt: DateTime.UtcNow);
+            var tasks = await _toDoRepository.GetAllByUserId(userId, ct);
+            return (
+            total: tasks.Count, 
+            completed: tasks.Count(t => t.State == ToDoItemState.Completed), 
+            active: tasks.Count(t => t.State == ToDoItemState.Active), 
+            generatedAt: DateTime.UtcNow
+            );
         }
     }
 }
