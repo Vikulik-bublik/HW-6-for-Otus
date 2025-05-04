@@ -2,16 +2,16 @@
 using Otus.ToDoList.ConsoleBot.Types;
 using Otus.ToDoList.ConsoleBot;
 
-public class Helper
+public static class Helper
 {
-    public static int MaxTaskCount;
-    public static int MaxLengthCount;
-    public static void SetMaxTaskCount(ITelegramBotClient botClient, string input, Update update)
+    public static int MaxTaskCount { get; set; }
+    public static int MaxLengthCount { get; set; }
+    public static async Task SetMaxTaskCount(ITelegramBotClient botClient, string input, Update update, CancellationToken ct)
     {
         try
         {
-            MaxTaskCount = ParseAndValidateInt(input, min: 1, max: 100);
-            botClient.SendMessage(update.Message.Chat, $"Максимальное число задач установлено: {MaxTaskCount}.");
+            MaxTaskCount = await ParseAndValidateInt(input, min: 1, max: 100, ct);
+            await botClient.SendMessage(update.Message.Chat, $"Максимальное число задач установлено: {MaxTaskCount}.", ct);
         }
         catch (ArgumentException ex)
         {
@@ -19,12 +19,12 @@ public class Helper
         }
     }
 
-    public static void SetMaxLengthCount(ITelegramBotClient botClient, string input, Update update)
+    public static async Task SetMaxLengthCount(ITelegramBotClient botClient, string input, Update update, CancellationToken ct)
     {
         try
         {
-            MaxLengthCount = ParseAndValidateInt(input, min: 1, max: 100);
-            botClient.SendMessage(update.Message.Chat, $"Максимальная длина задач установлена на количество символов: {MaxLengthCount}.");
+            MaxLengthCount = await ParseAndValidateInt(input, min: 1, max: 100, ct);
+            await botClient.SendMessage(update.Message.Chat, $"Максимальная длина задач установлена на количество символов: {MaxLengthCount}.", ct);
         }
         catch (ArgumentException ex)
         {
@@ -32,17 +32,18 @@ public class Helper
         }
     }
 
-    public static void ValidateString(string? str)
+    public static Task ValidateString(string? str, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(str))
         {
             throw new ArgumentException("Ввод не должен быть пустым или содержать только пробелы.");
         }
+        return Task.CompletedTask;
     }
 
-    public static int ParseAndValidateInt(string? str, int min, int max)
+    public static async Task<int> ParseAndValidateInt(string? str, int min, int max, CancellationToken ct)
     {
-        ValidateString(str);
+        await ValidateString(str, ct);
 
         if (!int.TryParse(str, out int result))
         {
